@@ -5,14 +5,14 @@ Speaks assistant responses **as they stream** — sentence by sentence, with bar
 multi-session voice arbitration, and studio-quality DSP — powered by a Rust daemon running
 **Kokoro-82M** fully in-process via ONNX Runtime.
 
-```
+```text
 pi streams tokens ──► speak.ts extension ──► Unix socket ──► pi-speak daemon (Rust)
                                                              ├─ sentence chunker + sanitizer
                                                              ├─ Kokoro-82M ONNX inference (24 kHz)
                                                              ├─ sinc resampler → 48 kHz stereo
                                                              ├─ soft-knee limiter + edge fades
                                                              └─ cpal playback (PipeWire/ALSA)
-```text
+```
 
 ## Features
 
@@ -28,7 +28,7 @@ pi streams tokens ──► speak.ts extension ──► Unix socket ──► p
 ## Requirements
 
 - Linux with a working audio output (PipeWire / PulseAudio / ALSA) — macOS mostly works, not battle-tested
-- [Rust](https://rustup.rs) (edition 2024)
+- [Rust](https://rustup.rs) 1.85+ (edition 2024)
 - `espeak-ng` on `PATH` (phonemization): `sudo apt install espeak-ng`
 - ONNX Runtime shared library (see below)
 
@@ -51,7 +51,7 @@ export ORT_DYLIB_PATH=/path/to/libonnxruntime.so          # explicit
 
 # 4. (optional) Install the binary so any session can auto-spawn the daemon
 cp target/release/pi-speak ~/.local/bin/
-```text
+```
 
 Then load the extension in Pi:
 
@@ -82,13 +82,14 @@ Speech starts automatically. While the assistant responds, you hear it sentence 
 /speak speed <0.2-4>  speaking rate multiplier
 /speak status         daemon status: playing, sessions, model, voice, speed
 /speak shutdown       stop the daemon (refuses while other sessions are connected; --force overrides)
-```text
+```
 
 ### Environment variables
 
 | Variable | Purpose |
 |----------|---------|
 | `PI_SPEAK_BIN` | Explicit path to the `pi-speak` binary |
+| `PI_SPEAK_MODELS_DIR` | Models directory override (default: `./models`, then exe-relative, `~/.local/share/pi-speak/models`) |
 | `PI_SPEAK_SOCKET` | Unix socket path (default: `$XDG_RUNTIME_DIR/pi-speak.sock`, else `/tmp/pi-speak.sock`) |
 | `PI_SPEAK_VOICE` | Default voice (default: `jarvis`) |
 | `PI_SPEAK_SPEED` | Default speed multiplier (default: `1.15`) |
@@ -116,7 +117,7 @@ interleave audio and cancellation is O(1).
 ## Development
 
 ```bash
-cargo test        # 18 unit tests (chunker, sanitizer, DSP, engines)
+cargo test        # 17 unit tests (chunker, sanitizer, DSP, engine)
 cargo clippy
 ```
 
