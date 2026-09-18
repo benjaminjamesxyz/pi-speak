@@ -22,7 +22,7 @@ jobs:
             short: linux-aarch64
             tool: cross
           - target: x86_64-apple-darwin
-            os: macos-13
+            os: macos-latest
             short: darwin-x64
             tool: cargo
           - target: aarch64-apple-darwin
@@ -35,7 +35,8 @@ jobs:
 
       - name: Install ALSA headers (native Linux)
         if: matrix.tool == 'cargo' && runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y pkg-config libasound2-dev
+        run: sudo apt-get update && sudo apt-get install -y \
+          pkg-config libasound2-dev
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -50,7 +51,8 @@ jobs:
 
       - name: Rename binary
         run: |
-          cp "target/${{ matrix.target }}/release/pi-speak" "pi-speak-${{ matrix.short }}"
+          cp "target/${{ matrix.target }}/release/pi-speak" \
+            "pi-speak-${{ matrix.short }}"
           chmod 0755 "pi-speak-${{ matrix.short }}"
 
       - uses: actions/upload-artifact@v4
