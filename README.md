@@ -34,7 +34,18 @@ pi streams tokens ──► speak.ts extension ──► Unix socket ──► p
 
 ## Install
 
-### One command
+### Pi package (recommended)
+
+```bash
+pi install npm:pi-speak
+```
+
+That's it. The package's postinstall step downloads the daemon binary, ONNX Runtime, and models
+(~380 MB total) into `~/.local/share/pi-speak/`, then the extension registers itself. Restart Pi
+and speech just works. Set `PI_SPEAK_SKIP_SETUP=1` before installing if you want to provision
+the native side yourself.
+
+### Shell one-liner (no npm)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/benjaminjamesxyz/pi-speak/main/install.sh | bash
@@ -43,8 +54,10 @@ curl -fsSL https://raw.githubusercontent.com/benjaminjamesxyz/pi-speak/main/inst
 Installs prerequisites (Rust, espeak-ng), builds the daemon, downloads ONNX Runtime and models
 (~350 MB), and registers the extension with Pi. Idempotent — safe to re-run to update.
 
+### Manual install
+
 <details>
-<summary>Manual install</summary>
+<summary>Build everything yourself</summary>
 
 ```bash
 git clone https://github.com/benjaminjamesxyz/pi-speak.git

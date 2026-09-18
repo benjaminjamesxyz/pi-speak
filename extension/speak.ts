@@ -73,6 +73,10 @@ function resolveBinaryPath(): string | null {
 
 	const home = process.env.HOME;
 	if (home) {
+		// Canonical data-dir install (npm postinstall placement)
+		const dataBin = path.join(home, ".local", "share", "pi-speak", "bin", "pi-speak");
+		if (fs.existsSync(dataBin)) return dataBin;
+
 		const localBin = path.join(home, ".local", "bin", "pi-speak");
 		if (fs.existsSync(localBin)) return localBin;
 
@@ -342,7 +346,9 @@ export default function (pi: ExtensionAPI): void {
 		if (clientSocket) {
 			try {
 				clientSocket.end();
-			} catch {}
+			} catch {
+				// best-effort teardown; socket may already be dead
+			}
 			clientSocket = null;
 		}
 		sessionContext = null;
@@ -507,8 +513,10 @@ export default function (pi: ExtensionAPI): void {
 											clientSocket = null;
 										}
 									}
-								} catch {}
-								sock.destroy();
+									} catch {
+										// shutdown ack is fire-and-forget; nothing to do with a parse failure
+									}
+									sock.destroy();
 							}
 						});
 						sock.on("error", (err: Error) => {
