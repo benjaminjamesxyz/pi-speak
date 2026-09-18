@@ -34,6 +34,18 @@ pi streams tokens ──► speak.ts extension ──► Unix socket ──► p
 
 ## Install
 
+### One command
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/benjaminjamesxyz/pi-speak/main/install.sh | bash
+```
+
+Installs prerequisites (Rust, espeak-ng), builds the daemon, downloads ONNX Runtime and models
+(~350 MB), and registers the extension with Pi. Idempotent — safe to re-run to update.
+
+<details>
+<summary>Manual install</summary>
+
 ```bash
 git clone https://github.com/benjaminjamesxyz/pi-speak.git
 cd pi-speak
@@ -61,6 +73,8 @@ pi install /path/to/pi-speak                    # or install as a package
 ```
 
 The extension auto-spawns the daemon on first use and reuses it across all Pi sessions.
+
+</details>
 
 ### Models
 
