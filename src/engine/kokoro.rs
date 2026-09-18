@@ -85,6 +85,10 @@ pub struct KokoroEngine {
     jarvis_style: Option<Vec<f32>>,
     /// Pre-allocated tensor for JARVIS style to avoid allocations on every synthesis call
     cached_jarvis_tensor: Option<ort::value::Tensor<f32>>,
+    /// ONNX graph input name for token ids ("tokens" in hexgrad export, "input_ids" in kokoro-onnx export)
+    tokens_input: String,
+    /// ONNX graph output name for audio ("audio" in hexgrad export, "waveform" in kokoro-onnx export)
+    audio_output: String,
 }
 
 impl KokoroEngine {
@@ -116,6 +120,35 @@ impl KokoroEngine {
             .commit_from_file(model_path)
             .map_err(|e| anyhow::anyhow!("failed to load Kokoro ONNX model: {e}"))?;
 
+        // Detect tensor names: exports differ (hexgrad: tokens/audio, kokoro-onnx: input_ids/waveform)
+        let tokens_input = session
+            .inputs()
+            .iter()
+            .map(|i| i.name().to_string())
+            .find(|n| n == "tokens" || n == "input_ids")
+            .with_context(|| {
+                format!(
+                    "model has no token input (expected 'tokens' or 'input_ids', got {:?})",
+                    session
+                        .inputs()
+                        .iter()
+                        .map(|i| i.name())
+                        .collect::<Vec<_>>()
+                )
+            })?;
+        let audio_output = session
+            .outputs()
+            .iter()
+            .map(|o| o.name().to_string())
+            .find(|n| n == "audio" || n == "waveform")
+            .unwrap_or_else(|| {
+                session
+                    .outputs()
+                    .first()
+                    .map(|o| o.name().to_string())
+                    .unwrap_or_else(|| "audio".into())
+            });
+
         let voices_db = VoiceDatabase::load_from_zip(voices_path)?;
         let phonemizer = Phonemizer::new("en-gb");
 
@@ -139,6 +172,8 @@ impl KokoroEngine {
             sample_rate: 24000,
             jarvis_style,
             cached_jarvis_tensor,
+            tokens_input,
+            audio_output,
         })
     }
 
@@ -300,14 +335,14 @@ impl KokoroEngine {
         };
 
         let outputs = self.session.run(ort::inputs![
-            "tokens" => tokens_tensor,
+            self.tokens_input.as_str() => tokens_tensor,
             "style" => style_ref,
             "speed" => speed_tensor,
         ])?;
 
         let audio_val = outputs
-            .get("audio")
-            .context("missing 'audio' output tensor")?;
+            .get(self.audio_output.as_str())
+            .with_context(|| format!("missing '{}' output tensor", self.audio_output))?;
         let (_shape, samples) = audio_val.try_extract_tensor::<f32>()?;
 
         // Convert f32 samples to 16-bit PCM bytes
