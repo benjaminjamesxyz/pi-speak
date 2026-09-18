@@ -1,6 +1,6 @@
 {
 	"name": "@benjaminjamesxyz/pi-speak",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Real-time neural TTS for the Pi coding agent — speaks assistant responses as they stream, powered by a Rust daemon running Kokoro-82M in-process.",
 	"license": "MIT",
 	"type": "module",
