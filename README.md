@@ -93,7 +93,7 @@ The extension auto-spawns the daemon on first use and reuses it across all Pi se
 
 | Model | Size | Source |
 |-------|------|--------|
-| Kokoro-82M + voices | ~350 MB | [hexgrad/Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) (Apache-2.0) |
+| Kokoro-82M + voices | ~350 MB | [thewh1teagle/kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx/releases) (Apache-2.0) |
 
 Models are **not** committed to the repo — run `scripts/download-models.sh` after cloning.
 

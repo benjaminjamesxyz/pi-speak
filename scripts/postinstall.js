@@ -85,9 +85,12 @@ async function fetchOnnxRuntime(t) {
 async function fetchModels() {
 	const modelsDir = path.join(ROOT, "models", "kokoro");
 	mkdirSync(modelsDir, { recursive: true });
+	// hexgrad/Kokoro-82M no longer hosts the ONNX export; kokoro-onnx releases do (ZIP of .npy voices,
+	// the exact format the daemon's voice_loader.rs parses).
+	const MODEL_BASE = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1";
 	const files = [
-		["https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/kokoro-v1.0.onnx", "kokoro-v1.0.onnx", 326_000_000],
-		["https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/voices-v1.0.zip", "voices-v1.0.bin", 28_300_000],
+		[`${MODEL_BASE}/kokoro-v1.0.onnx`, "kokoro-v1.0.onnx", 300_000_000],
+		[`${MODEL_BASE}/voices-v1.0.bin`, "voices-v1.0.bin", 25_000_000],
 	];
 	for (const [url, name, minSize] of files) {
 		const dest = path.join(modelsDir, name);
@@ -98,6 +101,32 @@ async function fetchModels() {
 		log(`downloading ${name} (~${Math.round(minSize / 1e6)} MB) ...`);
 		await download(url, dest);
 	}
+}
+
+/**
+ * Fallback when no prebuilt release asset exists yet: clone shallow and build with cargo.
+ * ponytail: rebuilds on every reinstall until a release asset is published; fine while releases are rare.
+ */
+async function buildFromSource() {
+	let haveCargo = false;
+	try {
+		execFileSync("cargo", ["--version"], { stdio: "ignore" });
+		haveCargo = true;
+	} catch {}
+	if (!haveCargo) {
+		warn("no cargo toolchain; install Rust (https://rustup.rs) and re-run install, or wait for a release binary");
+		return false;
+	}
+	const src = path.join(ROOT, "src");
+	rmSync(src, { recursive: true, force: true });
+	log("building daemon from source (first install takes a few minutes) ...");
+	execFileSync("git", ["clone", "--depth", "1", `https://github.com/${REPO}.git`, src], { stdio: "inherit" });
+	execFileSync("cargo", ["build", "--release"], { cwd: src, stdio: "inherit" });
+	const out = path.join(ROOT, "bin", "pi-speak");
+	mkdirSync(path.dirname(out), { recursive: true });
+	copyFileSync(path.join(src, "target", "release", "pi-speak"), out);
+	execFileSync("chmod", ["0755", out]);
+	return true;
 }
 
 async function main() {
@@ -113,12 +142,14 @@ async function main() {
 	mkdirSync(ROOT, { recursive: true });
 	await fetchOnnxRuntime(t);
 	await fetchModels();
-	const haveBinary = await fetchDaemonBinary(t);
-	if (!haveBinary) {
-		warn(`daemon binary missing. Speech will be unavailable until you either:
-  pi-speak: publish/download a release binary for ${t.bin}, or
+	// Keep any existing daemon binary; re-download only when absent.
+	const binPath = path.join(ROOT, "bin", "pi-speak");
+	if (existsSync(binPath)) {
+		log("daemon binary already installed");
+	} else if (!(await fetchDaemonBinary(t)) && !(await buildFromSource())) {
+		warn(`daemon binary missing. Install Rust (https://rustup.rs) and re-run install, or
   pi-speak: build it:  git clone https://github.com/${REPO} && cd pi-speak && cargo build --release
-  pi-speak: then place it at ${path.join(ROOT, "bin", "pi-speak")}`);
+  pi-speak: then place it at ${binPath}`);
 	}
 }
 

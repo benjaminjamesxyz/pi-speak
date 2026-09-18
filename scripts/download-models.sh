@@ -19,9 +19,12 @@ fetch() {
 }
 
 # Kokoro-82M (required for the default engine)
-fetch https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/kokoro-v1.0.onnx models/kokoro/kokoro-v1.0.onnx
-# voices-v1.0.zip is a ZIP of per-voice .npy style tensors; pi-speak loads it directly.
-fetch https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/voices-v1.0.zip models/kokoro/voices-v1.0.bin
+# hexgrad/Kokoro-82M no longer hosts the ONNX export; kokoro-onnx releases do (ZIP of .npy voices,
+# the exact format voice_loader.rs parses).
+MODEL_BASE=https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1
+fetch $MODEL_BASE/kokoro-v1.0.onnx models/kokoro/kokoro-v1.0.onnx
+# voices-v1.0.bin is a ZIP of per-voice .npy style tensors; pi-speak loads it directly.
+fetch $MODEL_BASE/voices-v1.0.bin models/kokoro/voices-v1.0.bin
 
 echo
 echo "Done. Models are git-ignored; re-run this script on fresh clones."
