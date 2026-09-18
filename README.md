@@ -37,7 +37,7 @@ pi streams tokens ──► speak.ts extension ──► Unix socket ──► p
 ### Pi package (recommended)
 
 ```bash
-pi install npm:pi-speak
+pi install npm:@benjaminjamesxyz/pi-speak
 ```
 
 That's it. The package's postinstall step downloads the daemon binary, ONNX Runtime, and models

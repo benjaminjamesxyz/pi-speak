@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-22.04
+            short: linux-x64
+            tool: cargo
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            short: linux-aarch64
+            tool: cross
+          - target: x86_64-apple-darwin
+            os: macos-13
+            short: darwin-x64
+            tool: cargo
+          - target: aarch64-apple-darwin
+            os: macos-14
+            short: darwin-arm64
+            tool: cargo
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ALSA headers (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libasound2-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross (Linux aarch64)
+        if: matrix.tool == 'cross'
+        uses: taiki-e/install-action@cross
+
+      - name: Build
+        run: ${{ matrix.tool }} build --release --target ${{ matrix.target }}
+
+      - name: Rename binary
+        run: |
+          cp "target/${{ matrix.target }}/release/pi-speak" "pi-speak-${{ matrix.short }}"
+          chmod 0755 "pi-speak-${{ matrix.short }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pi-speak-${{ matrix.short }}
+          path: pi-speak-${{ matrix.short }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: pi-speak-*
