@@ -1,0 +1,49 @@
+# Rust build artifacts
+/target/
+
+# Local CodeGraph index & logs
+.codegraph/
+*.log
+
+# Unix domain sockets and lockfiles
+*.sock
+*.sock.lock
+pi-speak.lock
+
+# Audio outputs & debug recordings
+*.wav
+*.pcm
+*.mp3
+
+# Model weights & voice database binaries (downloaded via scripts/download-models.sh)
+models/**/*.onnx
+models/**/*.bin
+models/*.onnx
+models/*.bin
+models/kokoro/
+models/jarvis/
+
+# Dynamic libraries & vendor binaries (build/system dependencies)
+lib/
+vendor/
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# Node & package managers
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python cache (if any)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE & OS files
+.DS_Store
+.vscode/
+.idea/

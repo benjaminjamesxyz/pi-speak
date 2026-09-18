@@ -1,0 +1,15 @@
+# Pi-Speak Cargo Configuration
+#
+# Tip: For maximum neural inference and SIMD DSP performance tailored to your CPU,
+# compile with native CPU optimizations:
+#   RUSTFLAGS="-C target-cpu=native" cargo build --release
+
+[profile.dev]
+opt-level = 1
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+overflow-checks = false

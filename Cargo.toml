@@ -1,0 +1,32 @@
+[package]
+name = "pi-speak"
+version = "0.1.0"
+edition = "2024"
+description = "High-fidelity neural TTS daemon for the Pi coding agent — Kokoro-82M inference, streaming sentence chunking, multi-session audio arbitration"
+license = "MIT"
+keywords = ["tts", "audio", "kokoro", "onnx"]
+categories = ["multimedia::audio"]
+
+[dependencies]
+anyhow = "1.0.104"
+clap = { version = "4.6.7", features = ["derive"] }
+cpal = "0.18.2"
+crossbeam-channel = "0.5.17"
+libc = "0.2"
+ndarray = "0.16"
+ort = { version = "2.0.0-rc.13", default-features = false, features = ["load-dynamic", "std", "ndarray"] }
+regex = "1.13.1"
+rubato = "5.0.0"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tokio = { version = "1.53.1", features = ["full"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+zip = { version = "2.2", default-features = false }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+strip = true

@@ -1,0 +1,22 @@
+{
+	"name": "pi-speak",
+	"version": "0.1.0",
+	"description": "Real-time neural TTS for the Pi coding agent — speaks assistant responses as they stream, powered by a Rust daemon running Kokoro-82M in-process.",
+	"license": "MIT",
+	"keywords": [
+		"pi-package",
+		"tts",
+		"text-to-speech",
+		"kokoro",
+		"voice"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/benjaminjamesxyz/pi-speak.git"
+	},
+	"pi": {
+		"extensions": [
+			"./extension/speak.ts"
+		]
+	}
+}
